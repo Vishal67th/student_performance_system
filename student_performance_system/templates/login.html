@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<div class="login-layout">
+  <section class="login-welcome">
+    <span class="login-seal">CA</span>
+    <span class="eyebrow">CAMPUS ACADEMIC SERVICES</span>
+    <h1>Supporting every student's journey.</h1>
+    <p>A focused space for faculty to review class progress, celebrate achievement, and guide students with confidence.</p>
+    <div class="welcome-rule"></div>
+    <small>STUDENT PERFORMANCE &amp; INSIGHTS</small>
+  </section>
+  <div class="card login-card">
+    <span class="eyebrow">FACULTY ACCESS</span>
+    <h2>Welcome back</h2>
+    <p>Sign in to continue to your academic dashboard.</p>
+    <form method="post">
+      <label>Username <input name="username" placeholder="Enter your username" required autofocus></label>
+      <label>Password <input name="password" type="password" placeholder="Enter your password" required></label>
+      <button>Sign in <span aria-hidden="true">→</span></button>
+    </form>
+    <small class="login-note">Authorized faculty access only</small>
+  </div>
+</div>
+{% endblock %}

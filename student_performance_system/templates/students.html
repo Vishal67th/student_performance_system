@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Student Records{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <div>
+    <span class="eyebrow">ACADEMIC SERVICES / RECORDS</span>
+    <h1>Student Records</h1>
+    <p>Manage student records, marks, and attendance in one place.</p>
+  </div>
+  <a class="btn alt" href="{{ url_for('export') }}">Export report <span aria-hidden="true">↓</span></a>
+</section>
+<div class="card">
+  <div class="section-title"><div><span class="eyebrow">NEW RECORD</span><h2>Add a student</h2></div></div>
+  <form method="post" action="{{ url_for('add_student') }}" class="form">
+    <label class="field-label">Student name<input name="name" placeholder="e.g. Alex Morgan" required></label>
+    {% for s in subjects %}<label class="field-label">{{ s }} marks<input name="{{ s|lower }}" type="number" min="0" max="100" step="any" placeholder="0–100" required></label>{% endfor %}
+    <label class="field-label">Attendance (%)<input name="attendance" type="number" min="0" max="100" step="any" placeholder="0–100" required></label>
+    <div class="form-submit"><button>Add student <span aria-hidden="true">+</span></button><small>Student names must be unique.</small></div>
+  </form>
+</div>
+<div class="card">
+  <div class="section-title"><div><span class="eyebrow">BULK MANAGEMENT</span><h2>Import student records</h2></div></div>
+  <form method="post" action="{{ url_for('upload') }}" enctype="multipart/form-data" class="import-form">
+    <label class="file-picker">Choose a CSV file<input type="file" name="file" accept=".csv" required></label>
+    <label class="replace-option"><input type="checkbox" name="replace" value="1"> Replace all current records</label>
+    <button>Import records <span aria-hidden="true">↑</span></button>
+  </form>
+  <small>Required columns: Name, Maths, Physics, Chemistry, English, CS, Attendance. Existing names are skipped to prevent duplicates.</small>
+</div>
+<div class="card scroll">
+  <div class="section-title records-title"><div><span class="eyebrow">CLASS DIRECTORY</span><h2>All students <span class="count-badge">{{ rows|length }}</span></h2></div>
+    <form class="row search-form" method="get"><input name="q" value="{{ q }}" placeholder="Search by name…" aria-label="Search by name"><button>Search</button>{% if q %}<a class="clear-search" href="{{ url_for('students') }}">Clear</a>{% endif %}</form>
+  </div>
+  <table class="records-table">
+    <tr><th>Rank</th><th>Name</th>{% for s in subjects %}<th>{{ s }}</th>{% endfor %}<th>Total</th><th>%</th><th>Grade</th><th>Attend.</th><th>Result</th><th>Group</th><th></th></tr>
+    {% for r in rows %}
+    <tr>
+      <td>{{ r.Rank }}</td>
+      <td><a href="{{ url_for('student_detail', sid=r.ID) }}">{{ r.Name }}</a></td>
+      {% for s in subjects %}<td class="{{ 'bad' if r[s] < 40 }}">{{ r[s]|int }}</td>{% endfor %}
+      <td>{{ r.Total|int }}</td><td>{{ r.Percentage }}</td><td>{{ r.Grade }}</td><td>{{ r.Attendance|int }}%</td>
+      <td><span class="pill {{ 'pass' if r.Result == 'Pass' else 'fail' }}">{{ r.Result }}</span>{% if r.AtRisk %} <span class="pill risk">At-risk</span>{% endif %}</td>
+      <td>{{ r.Group }}</td>
+      <td><form method="post" action="{{ url_for('delete_student', sid=r.ID) }}" onsubmit="return confirm('Delete this student?')"><button class="alt small">Delete</button></form></td>
+    </tr>
+    {% else %}<tr><td colspan="{{ subjects|length + 9 }}">No students found.</td></tr>{% endfor %}
+  </table>
+</div>
+{% endblock %}

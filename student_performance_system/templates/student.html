@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ st.Name }}{% endblock %}
+{% block head %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>{% endblock %}
+{% block content %}
+<a class="back-link" href="{{ url_for('students') }}">← Back to student records</a>
+<section class="page-heading student-heading">
+  <div>
+    <span class="eyebrow">STUDENT PROFILE / ACADEMIC SUMMARY</span>
+    <h1>{{ st.Name }}</h1>
+    <p>Individual performance compared with the current class average.</p>
+  </div>
+  <span class="profile-grade">{{ st.Grade }}<small>GRADE</small></span>
+</section>
+<div class="kpis">
+  <div class="card kpi"><span class="kpi-icon">RK</span><b>#{{ st.Rank }}</b><span class="kpi-label">Class rank · {{ total_students }} students</span></div>
+  <div class="card kpi"><span class="kpi-icon">AV</span><b>{{ st.Percentage }}%</b><span class="kpi-label">Overall percentage</span></div>
+  <div class="card kpi"><span class="kpi-icon">AT</span><b>{{ st.Attendance|int }}%</b><span class="kpi-label">Attendance</span></div>
+  <div class="card kpi"><span class="kpi-icon">GP</span><b class="group-value">{{ st.Group }}</b><span class="kpi-label">Performance group</span></div>
+</div>
+{% if st.AtRisk %}<div class="support-banner"><strong>Support check-in suggested</strong><span>This student is flagged for additional support based on marks or attendance.</span></div>{% endif %}
+<div class="card chart-card"><div class="section-title"><div><span class="eyebrow">SUBJECT COMPARISON</span><h2>Marks vs class average</h2></div></div><canvas id="c"></canvas></div>
+<script>
+new Chart(c, {type:'bar', data:{labels:{{ subjects|tojson }}, datasets:[
+ {label:{{ st.Name|tojson }}, data:{{ marks|tojson }}, backgroundColor:'#145b78'},
+ {label:'Class average', data:{{ class_avg|tojson }}, backgroundColor:'#c49343'}]},
+ options:{scales:{y:{min:0,max:100}}}});
+</script>
+{% endblock %}

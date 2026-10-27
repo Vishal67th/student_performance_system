@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block head %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <div>
+    <span class="eyebrow">ACADEMIC SERVICES / OVERVIEW</span>
+    <h1>Good day, {{ session.user }}</h1>
+    <p>Your class performance at a glance. Explore results and spot where students may need support.</p>
+  </div>
+  <a class="btn" href="{{ url_for('students') }}">Manage students <span aria-hidden="true">→</span></a>
+</section>
+{% if empty %}
+  <div class="card empty-state">
+    <span class="empty-icon" aria-hidden="true">+</span>
+    <h2>Your class overview starts here</h2>
+    <p>Add student records to see academic insights, subject averages, and students who may need support.</p>
+    <a class="btn" href="{{ url_for('students') }}">Add or import student records</a>
+  </div>
+{% else %}
+<div class="kpis">
+  <div class="card kpi"><span class="kpi-icon">EN</span><b>{{ s.students }}</b><span class="kpi-label">Enrolled students</span></div>
+  <div class="card kpi"><span class="kpi-icon">AV</span><b>{{ s.average }}%</b><span class="kpi-label">Class average</span></div>
+  <div class="card kpi"><span class="kpi-icon">PS</span><b>{{ s.pass_rate }}%</b><span class="kpi-label">Pass rate</span></div>
+  <div class="card kpi"><span class="kpi-icon">SU</span><b>{{ s.at_risk }}</b><span class="kpi-label">Students needing support</span></div>
+</div>
+<div class="grid">
+  <div class="card chart-card"><div class="section-title"><div><span class="eyebrow">CLASS PERFORMANCE</span><h2>Subject averages</h2></div></div><canvas id="c1"></canvas></div>
+  <div class="card chart-card"><div class="section-title"><div><span class="eyebrow">GRADE BREAKDOWN</span><h2>Grade distribution</h2></div></div><canvas id="c2"></canvas></div>
+  <div class="card chart-card"><div class="section-title"><div><span class="eyebrow">ATTENDANCE & RESULTS</span><h2>Attendance vs percentage</h2></div></div><canvas id="c3"></canvas></div>
+</div>
+<div class="grid">
+  <div class="card">
+    <div class="section-title"><div><span class="eyebrow">RECOGNITION</span><h2>Leading students</h2></div><a href="{{ url_for('students') }}">View student records →</a></div>
+    <ol class="student-list">{% for t in top %}<li><span class="rank-badge">{{ loop.index }}</span><a href="{{ url_for('student_detail', sid=t.ID) }}">{{ t.Name }}</a><strong>{{ t.Percentage }}%</strong></li>{% endfor %}</ol>
+  </div>
+  <div class="card">
+    <div class="section-title"><div><span class="eyebrow">EARLY SUPPORT</span><h2>Students to check in with</h2></div></div>
+    <ul class="student-list">{% for r in risk %}<li><span class="status-dot"></span><a href="{{ url_for('student_detail', sid=r.ID) }}">{{ r.Name }}</a><strong>{{ r.Percentage }}%</strong></li>{% else %}<li class="support-empty">No students currently flagged. Keep up the good work!</li>{% endfor %}</ul>
+    <small>Flagged if percentage &lt; 50, attendance &lt; 75, or any subject below 40.</small>
+  </div>
+  <div class="card scroll">
+    <div class="section-title"><div><span class="eyebrow">SUBJECT OVERVIEW</span><h2>Class insights</h2></div></div>
+    <table><tr><th>Subject</th><th>Avg</th><th>High</th><th>Low</th><th>Pass %</th></tr>
+    {% for x in subj %}<tr><td>{{ x.subject }}</td><td>{{ x.avg }}</td><td>{{ x.high }}</td><td>{{ x.low }}</td><td>{{ x.pass_pct }}%</td></tr>{% endfor %}</table></div>
+</div>
+<script>
+Chart.defaults.color = getComputedStyle(document.documentElement).getPropertyValue('--muted').trim();
+Chart.defaults.font.family = 'Inter, ui-sans-serif, system-ui, sans-serif';
+Chart.defaults.plugins.legend.labels.usePointStyle = true;
+const subj = {{ subj|tojson }}, grades = {{ grades|tojson }}, gl = {{ grade_labels|tojson }}, pts = {{ scatter|tojson }};
+new Chart(c1, {type:'bar', data:{labels:subj.map(x=>x.subject), datasets:[{label:'Average', data:subj.map(x=>x.avg), backgroundColor:'#145b78', borderRadius:6}]}, options:{scales:{y:{min:0,max:100}}, plugins:{legend:{display:false}}}});
+new Chart(c2, {type:'doughnut', data:{labels:gl, datasets:[{data:grades, backgroundColor:['#16805a','#64a982','#145b78','#c49343','#df9c50','#bd4051'], borderWidth:0}]}});
+new Chart(c3, {type:'scatter', data:{datasets:[{data:pts.map(p=>({x:p.Attendance,y:p.Percentage})), backgroundColor:'#145b78'}]}, options:{scales:{x:{title:{display:true,text:'Attendance %'}}, y:{title:{display:true,text:'Percentage'}}}, plugins:{legend:{display:false}}}});
+</script>
+{% endif %}
+{% endblock %}
